@@ -21,11 +21,24 @@ class RoutingService:
     def get_route(self, start: Tuple[float, float], end: Tuple[float, float]) -> RouteSummary:
         """Retrieve route from provider (single external call) and prepare decoded geometry and sampled points."""
         logger.info('Requesting route from provider: start=%s end=%s', start, end)
-        # Convert to Decimal pairs expected by provider
-        start_d = (Decimal(str(start[0])), Decimal(str(start[1])))
-        end_d = (Decimal(str(end[0])), Decimal(str(end[1])))
+        # Normalize inputs: support human-readable location strings OR coordinate tuples/lists
+        def _normalize_point(p):
+            # If it's a string (e.g., 'Dallas, TX'), pass through to provider unchanged
+            if isinstance(p, str):
+                return p
+            # If it's a tuple/list of numeric coords, convert to Decimal pair (lat, lon)
+            if isinstance(p, (list, tuple)) and len(p) == 2:
+                try:
+                    return (Decimal(str(p[0])), Decimal(str(p[1])))
+                except Exception:
+                    raise ValueError('Invalid numeric coordinate tuple provided')
+            raise ValueError('Unsupported start/end location format')
 
-        data = self.provider.get_route(start_d, end_d)
+        start_param = _normalize_point(start)
+        end_param = _normalize_point(end)
+
+        # Delegate to provider; providers should accept either text locations or numeric tuples
+        data = self.provider.get_route(start_param, end_param)
 
         coords_raw = data.get('coords') or []
         if not coords_raw:
