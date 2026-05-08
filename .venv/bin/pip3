@@ -1,4 +1,4 @@
-#!/Users/aradhyatiwari/Documents/spotter.ai/spotter.ai/.venv/bin/python3
+#!/Users/aradhyatiwari/Documents/spotter.ai/spotter.ai/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
