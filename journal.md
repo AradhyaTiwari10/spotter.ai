@@ -444,3 +444,12 @@ Implement a local optimization engine to select fuel stops along a sampled route
 feat(optimization): implement fuel stop optimization engine
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+## ORS API Key Configuration Validation
+- Added ORS_API_KEY to config.settings.base loaded via env.get_env.
+- Validated via `python manage.py  settings.ORS_API_KEY printed successfully (value redacted in logs).shell` 
+- Initialized OpenRouteServiceProvider successfully using configured ORS_API_KEY.
+- Retrieved a real route between Dallas, TX and Phoenix, AZ via ORS (one provider call).
+- Route stats: distance_meters ~1,712,463.7 m; points 5341; sampled 43.
+- Candidate discovery returned 0 candidates for this route on local sample dataset (no stations within 5-mile corridor). Consider increasing corridor or ensure dataset coverage.
+

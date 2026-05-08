@@ -3,6 +3,9 @@ from ..env import BASE_DIR, get_env
 
 BASE_DIR = BASE_DIR
 SECRET_KEY = get_env('DJANGO_SECRET_KEY', 'unsafe-secret')
+# OpenRouteService API key (optional; set in environment for ORS provider)
+ORS_API_KEY = get_env('ORS_API_KEY', '')
+
 DEBUG = False
 ALLOWED_HOSTS = get_env('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
