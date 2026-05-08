@@ -98,3 +98,77 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 chore(setup): finalize milestone 1 architecture and dataset infrastructure
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+# Milestone 2 - Data Engineering and Persistence Layer
+
+## Objective
+Implement data ingestion, persistence and repository abstractions for fuel station data to prepare for geospatial enrichment and optimized route calculations.
+
+## Dataset Analysis
+- Dataset contains ~8151 rows (~7531 valid US rows) with retail_price floats and no coordinates.
+- Dataset includes Canadian provinces (AB, BC, MB, NB, NS, ON, QC, SK, YT) which are filtered out.
+
+## Database Model Decisions
+- Created FuelStation model with nullable latitude/longitude and is_geocoded flag.
+- Retail price stored as DecimalField(max_digits=6, decimal_places=3) for financial precision.
+- No destructive uniqueness constraints; deduplication performed during ingestion.
+
+## Decimal Precision Strategy
+- Prices parsed into Decimal and quantized to 3 decimal places (0.001) using ROUND_HALF_UP.
+
+## Deduplication Strategy
+- Deterministic key used: (opis_truckstop_id, truckstop_name, address, city, state).
+- Duplicates are skipped during ingestion; no DB uniqueness constraint to avoid accidental rejection of near-duplicates.
+
+## USA Filtering Logic
+- Rows with province/state codes matching known Canadian provinces are filtered out before persistence.
+
+## Repository Layer Decisions
+- Implemented FuelStationRepository to centralize ORM access (bulk_create, queries, counts).
+- Keeps business logic decoupled from ORM and eases PostGIS migration in repositories later.
+
+## Import Pipeline Architecture
+- management/commands/import_fuel_stations.py performs streaming CSV read, normalization, USA filtering, deterministic deduplication, and bulk inserts.
+- Uses low-memory streaming, configurable batch size, and reports ingestion statistics.
+
+## Geocoding Preparation
+- infrastructure/geocoding/ contains BaseGeocoder and NoopGeocoder placeholders for future enrichment workflows and a planned enrich_fuel_coordinates command.
+
+## Database Indexing Decisions
+- Indexed fields: state, retail_price, city, opis_truckstop_id, rack_id to support common lookups and sorting.
+
+## Performance Considerations
+- bulk_create used to minimize DB round-trips.
+- Streaming CSV read to reduce memory footprint.
+- Deduplication performed in-memory using a set of deterministic keys (acceptable given dataset size). For much larger datasets, move deduplication to DB-level strategies or use external keys/hashes.
+
+## Files Added
+- fuel_optimizer/apps/route_optimizer/models.py
+- fuel_optimizer/apps/route_optimizer/repositories/fuel_station_repository.py
+- fuel_optimizer/apps/route_optimizer/utils/data_normalization.py
+- fuel_optimizer/apps/route_optimizer/management/commands/import_fuel_stations.py
+- fuel_optimizer/apps/route_optimizer/infrastructure/geocoding/geocoder.py
+- fuel_optimizer/apps/route_optimizer/migrations/0001_initial.py
+- fuel_optimizer/apps/route_optimizer/admin.py
+
+## Files Modified
+- journal.md (appended)
+
+## Validation Results
+- Migration file created (0001_initial.py). Run `python manage.py migrate` to apply.
+- Import command prepared; run locally to ingest dataset and view statistics.
+
+## Technical Debt
+- For very large datasets: deduplication may need to move to DB or use streaming hash-based de-duplication to limit memory.
+- No automated tests included yet; add pytest and CI in next steps.
+- Pin dependencies for reproducible builds.
+
+## Next Steps
+- Implement enrich_fuel_coordinates command to batch geocode non-geocoded stations.
+- Add unit tests for normalization utilities and repository methods.
+- Add PostGIS-backed repository implementations and spatial indexes.
+
+## Git Commit
+feat(data): implement fuel station ingestion and persistence layer
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
