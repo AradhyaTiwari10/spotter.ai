@@ -121,5 +121,3 @@ class GeocodingService:
         }
         logger.info('Enrichment completed: %s', stats)
         return stats
-
-PY
