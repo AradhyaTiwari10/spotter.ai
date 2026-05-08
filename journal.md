@@ -172,3 +172,31 @@ Implement data ingestion, persistence and repository abstractions for fuel stati
 feat(data): implement fuel station ingestion and persistence layer
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+# Debugging and Fixes
+
+## App Registration Fix
+- Issue: Explicit app config path not used in INSTALLED_APPS; migrations not discovered by Django.
+- Fix: Updated fuel_optimizer/config/settings/base.py to use full app config path:
+  'fuel_optimizer.apps.route_optimizer.apps.RouteOptimizerConfig'
+- Result: Migration discovery and application now work correctly.
+
+## Migration Generation
+- Initial migration (0001_initial.py) was manually created in Milestone 2 but not auto-discovered by Django.
+- Ran `python manage.py makemigrations route_optimizer` to generate and properly register migration.
+- Validated with `python manage.py showmigrations route_optimizer`.
+- Applied successfully: Applying route_optimizer.0001_initial... OK
+
+## Ingestion Validation
+- After migrations applied, re-ran ingestion command.
+- Results: 6855 fuel stations imported from 8151 total rows.
+  - Duplicates skipped: 676 (due to deterministic deduplication)
+  - Non-USA rows skipped: 620 (Canadian provinces)
+  - Invalid rows: 0
+- Sample verified: WOODSHED OF BIG CABIN (Big Cabin, OK) - $3.007
+- Decimal precision confirmed: prices stored as Decimal(max_digits=6, decimal_places=3).
+
+## Technical Notes
+- Django app discovery requires explicit AppConfig path in INSTALLED_APPS.
+- Auto-generated migration replaces manual 0001_initial.py (Git will handle cleanup on next commit).
+

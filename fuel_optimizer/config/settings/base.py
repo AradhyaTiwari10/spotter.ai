@@ -14,7 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'fuel_optimizer.apps.route_optimizer',
+    'fuel_optimizer.apps.route_optimizer.apps.RouteOptimizerConfig',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
