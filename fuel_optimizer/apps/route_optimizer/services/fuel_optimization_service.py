@@ -23,7 +23,7 @@ MPG = Decimal('10')
 MAX_RANGE_MILES = Decimal('500')
 TANK_CAPACITY_GALLONS = (MAX_RANGE_MILES / MPG).quantize(GALLON_Q)
 
-DEFAULT_CORRIDOR_RADIUS_MILES = 5.0
+DEFAULT_CORRIDOR_RADIUS_MILES = 10.0  # increased default for better candidate coverage in sparse datasets
 
 class FuelOptimizationService:
     """Service that finds candidate stations along a sampled route and runs a greedy optimization to minimize fuel cost.
