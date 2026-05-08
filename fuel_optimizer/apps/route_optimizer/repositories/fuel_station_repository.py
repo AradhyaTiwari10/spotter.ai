@@ -61,3 +61,13 @@ class FuelStationRepository:
         """Update coordinates for a station by id. Returns number of rows updated."""
         return self.model.objects.filter(pk=station_id).update(latitude=latitude, longitude=longitude, is_geocoded=is_geocoded)
 
+    def find_stations_in_bbox(self, min_lat: float, max_lat: float, min_lon: float, max_lon: float):
+        """Return iterator of station dicts inside the provided lat/lon bounding box.
+
+        Values returned include id, opis_truckstop_id, truckstop_name, address, city, state, latitude, longitude, retail_price
+        """
+        qs = self.model.objects.filter(latitude__isnull=False, longitude__isnull=False,
+                                       latitude__gte=min_lat, latitude__lte=max_lat,
+                                       longitude__gte=min_lon, longitude__lte=max_lon)
+        return qs.values('id', 'opis_truckstop_id', 'truckstop_name', 'address', 'city', 'state', 'latitude', 'longitude', 'retail_price')
+
