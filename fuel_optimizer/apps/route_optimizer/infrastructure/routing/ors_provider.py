@@ -40,8 +40,27 @@ class OpenRouteServiceProvider(BaseRoutingProvider):
     def get_route(self, start: Tuple[Decimal, Decimal], end: Tuple[Decimal, Decimal], profile: str = 'driving-car', timeout: Optional[float] = None) -> Dict[str, Any]:
         timeout = timeout or self.timeout
         url = f"{self.base_url}/v2/directions/{profile}"
-        # ORS expects coordinates [[lon, lat], [lon, lat]]
-        coords = [[float(start[1]), float(start[0])], [float(end[1]), float(end[0])]]
+        # If textual locations provided, attempt lightweight geocoding via geopy.Nominatim
+        def _ensure_coords(p):
+            # Accept Decimal tuple (lat, lon) or string address
+            if isinstance(p, str):
+                # perform geocoding
+                try:
+                    from geopy.geocoders import Nominatim
+                    geoloc = Nominatim(user_agent='fuel-route-optimizer').geocode(p, exactly_one=True, timeout=10)
+                    if not geoloc:
+                        raise ValueError(f'Geocoding failed for {p}')
+                    lat = float(geoloc.latitude)
+                    lon = float(geoloc.longitude)
+                    return (lon, lat)
+                except Exception as exc:
+                    logger.exception('Geocoding inside ORS provider failed: %s', exc)
+                    raise
+            else:
+                # assume tuple (Decimal lat, Decimal lon)
+                return (float(p[1]), float(p[0]))
+
+        coords = [_ensure_coords(start), _ensure_coords(end)]
         payload = {
             'coordinates': coords,
             'instructions': False,
