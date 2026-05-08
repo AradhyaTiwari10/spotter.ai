@@ -1,9 +1,6 @@
 from django.urls import path
-from .views import health
-
-app_name = 'route_optimizer_api'
+from .v1.views.optimization_view import OptimizeRouteView
 
 urlpatterns = [
-    path('health/', health, name='health'),
-    # future: path('routes/', include(...))
+    path('optimize-route/', OptimizeRouteView.as_view(), name='optimize-route'),
 ]
