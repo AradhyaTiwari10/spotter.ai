@@ -1,6 +1,7 @@
-from typing import Iterable, List
+from typing import Iterable, List, Dict, Generator
 from django.db import transaction
 from fuel_optimizer.apps.route_optimizer.models import FuelStation
+from decimal import Decimal
 
 
 class FuelStationRepository:
@@ -40,4 +41,23 @@ class FuelStationRepository:
 
     def count_stations(self) -> int:
         return self.model.objects.count()
+
+    def iter_non_geocoded_batches(self, batch_size: int = 1000) -> Generator[List[Dict], None, None]:
+        """Yield lists of non-geocoded station rows as dicts to avoid loading all objects into memory.
+
+        Each dict contains minimal fields required for geocoding: id, opis_truckstop_id, truckstop_name, address, city, state
+        """
+        qs = self.model.objects.filter(is_geocoded=False).values('id', 'opis_truckstop_id', 'truckstop_name', 'address', 'city', 'state')
+        batch: List[Dict] = []
+        for row in qs.iterator():
+            batch.append(row)
+            if len(batch) >= batch_size:
+                yield batch
+                batch = []
+        if batch:
+            yield batch
+
+    def update_coordinates(self, station_id: int, latitude: Decimal, longitude: Decimal, is_geocoded: bool = True) -> int:
+        """Update coordinates for a station by id. Returns number of rows updated."""
+        return self.model.objects.filter(pk=station_id).update(latitude=latitude, longitude=longitude, is_geocoded=is_geocoded)
 

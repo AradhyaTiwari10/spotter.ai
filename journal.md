@@ -200,3 +200,82 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 - Django app discovery requires explicit AppConfig path in INSTALLED_APPS.
 - Auto-generated migration replaces manual 0001_initial.py (Git will handle cleanup on next commit).
 
+
+# Milestone 3 - Geocoding and Spatial Enrichment Infrastructure
+
+## Objective
+Implement offline geocoding enrichment infrastructure to populate coordinates for FuelStation records reliably, resumably, and responsibly.
+
+## Geocoding Architecture Decisions
+- Introduced a GeocodingService that orchestrates batch enrichment and isolates retry/throttle logic from provider implementations.
+- Provider implementations live under infrastructure/geocoding/ and conform to BaseGeocoder interface.
+
+## Provider Abstraction Strategy
+- BaseGeocoder defines geocode_address(address, timeout) -> Optional[(lat, lon)].
+- NominatimGeocoder implemented using geopy.Nominatim.
+- NoopGeocoder exists for offline/dev safety and testing.
+
+## Retry Logic Strategy
+- Exponential backoff with jitter for transient errors.
+- Configurable retries via env vars or command args (default=3).
+- Exceptions do not crash the entire job; individual rows are retried then marked failed in stats.
+
+## Throttling Strategy
+- Command-level throttle_seconds default=1.0s between requests to respect Nominatim usage policy.
+- Configurable via GEOCODE_THROTTLE env var or --throttle flag.
+
+## Resumability Design
+- Command processes only records where is_geocoded=False.
+- Coordinates persisted immediately per successful geocode, enabling safe interruption and resume.
+
+## Address Normalization Decisions
+- Utilities in utils/geocoding_utils.py build prioritized queries: "Truckstop Name, City, State" with fallback to address.
+- Highway-like names are detected and fallback to address to improve matching.
+
+## Coordinate Validation Strategy
+- validate_coordinates enforces lat/lon ranges and applies loose USA bounding box (lat 18..72, lon -170..-50) to reject clearly invalid or non-USA results.
+
+## Incremental Persistence Design
+- Repository provides update_coordinates which updates DB per successful geocode using queryset.update() for minimal ORM overhead.
+- Batch-size limits DB fetches; updates are incremental to avoid big transactions.
+
+## Long-Running Job Considerations
+- Streaming DB iteration via iterator() with batch grouping keeps memory low.
+- Command logs progress and stats; interruptions (Ctrl-C) are  already-geocoded rows are skipped on resume.safe 
+
+## Spatial Query Preparation
+- Coordinates persisted as Decimal fields on FuelStation, preparing the schema for PostGIS migration and spatial indexing later.
+
+## Logging and Observability
+- Structured logging via Python logging module; logs include station id, attempts, success/failure and elapsed time in final stats.
+
+## Performance Considerations
+- Minimal per-row DB work: select only necessary fields, update using queryset.update.
+- bulk_create used in ingestion stage; geocoding updates are incremental per station to ensure resumability.
+
+## Files Added
+- fuel_optimizer/apps/route_optimizer/services/geocoding_service.py
+- fuel_optimizer/apps/route_optimizer/infrastructure/geocoding/geocoder.py (extended with NominatimGeocoder)
+- fuel_optimizer/apps/route_optimizer/utils/geocoding_utils.py
+- fuel_optimizer/apps/route_optimizer/management/commands/enrich_fuel_coordinates.py
+
+## Files Modified
+- fuel_optimizer/apps/route_optimizer/repositories/fuel_station_repository.py
+
+## Validation Results
+- Command ready for use; to run (safe defaults):
+  python manage.py enrich_fuel_coordinates --batch 100 --throttle 1.0 --retries 3 --timeout 10.0 --provider noop
+- The command is resumable and will skip already geocoded rows.
+
+## Technical Debt
+- Consider persistent failure counters to avoid repeating futile attempts.
+- Implement tests and CI harness.
+
+## Next Steps
+- Implement async, rate-limited worker for higher throughput.
+- Add PostGIS-backed spatial repository and spatial indexes.
+
+## Git Commit
+feat(geocoding): implement spatial enrichment infrastructure
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
