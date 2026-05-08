@@ -465,3 +465,31 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 - Geocoded station count: $(python manage.py shell -c "from fuel_optimizer.apps.route_optimizer.models import FuelStation; print(FuelStation.objects.filter(is_geocoded=True).count())")
 - Sample stations appended above.
 
+
+# Geospatial Validation - Real Coordinate Enrichment
+
+## Issue Discovered
+- Temporary seeded coordinates at (32.8, -96.8) were present and invalidated corridor and proximity checks.
+
+## Cleanup Performed
+- Removed all seeded coordinates and reset affected stations to non-geocoded.
+
+## Real Enrichment Results
+- Ran Nominatim enrichment with 1s throttle and resumable incremental writes.
+- Current genuinely geocoded station count: 83.
+- Sample real coordinates observed:
+  - KWIK TRIP #796, Tomah WI -> 44.019207, -90.501948
+  - PILOT TRAVEL CENTER #1243, Gila Bend AZ -> 32.930378, -112.673147
+  - CIRCLE K #2612042, Jarrell TX -> 30.774812, -97.627464
+  - SAPP BROS TRAVEL CENTER, Council Bluffs IA -> 41.235787, -95.880694
+  - Mardi Gras Truck Stop, New Orleans LA -> 29.982675, -90.057494
+
+## Validation Results
+- Dallas -> Fort Worth: 2 candidates with 50-mile corridor; route optimization remained reachable with no stop required.
+- Dallas -> Phoenix: 6 candidates with 50-mile corridor; optimizer selected 3 stops and produced a realistic total cost of 201.10.
+- Houston -> Austin and Los Angeles -> San Diego remained coverage-limited at narrower corridors, confirming candidate availability depends on dataset density and corridor width.
+
+## Lessons Learned
+- Geospatial integrity is critical; seeded coordinates can mask real corridor behavior.
+- Candidate discovery quality is bounded by enrichment coverage and corridor radius.
+- Long-haul routes validate the optimizer well once real coordinates exist, even when local short routes need denser coverage.
