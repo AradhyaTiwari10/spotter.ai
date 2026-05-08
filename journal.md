@@ -493,3 +493,23 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 - Geospatial integrity is critical; seeded coordinates can mask real corridor behavior.
 - Candidate discovery quality is bounded by enrichment coverage and corridor radius.
 - Long-haul routes validate the optimizer well once real coordinates exist, even when local short routes need denser coverage.
+
+# Integration Fix - Routing Service String Support
+
+## Root Cause
+- RoutingService.get_route() assumed coordinate tuples and attempted Decimal conversion on inputs. When the public API supplied human-readable locations (e.g., "Dallas, TX"), Decimal conversion raised InvalidOperation and caused provider errors.
+
+## Fix
+- RoutingService now normalizes inputs: accepts either human-readable strings or numeric tuples/lists. It only converts numeric tuples to Decimal; string inputs are passed through unchanged to providers.
+- OpenRouteServiceProvider now accepts textual inputs and performs a lightweight geocoding step (geopy.Nominatim) to resolve addresses to coordinates internally when necessary. This keeps the controller thin and preserves a single routing call to ORS for directions.
+
+## Strategy
+- Maintain clean separation: RoutingService normalizes input and delegates; provider encapsulates any minimal geocoding needed to support textual inputs.
+- Avoided attempting Decimal conversion on non-numeric strings.
+
+## Validation
+- Verified RoutingService works with both:
+  - 'Dallas, TX' -> 'Fort Worth, TX' (string inputs)
+  - (32.7767, -96.7970) -> (33.4484, -112.0740) (coordinate tuples)
+- Re-tested public endpoint and observed successful routing and optimization flows.
+

@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from ...serializers.request_serializers import OptimizeRouteRequestSerializer
-from ...serializers.response_serializers import OptimizeRouteResponseSerializer
+from ..serializers.request_serializers import OptimizeRouteRequestSerializer
+from ..serializers.response_serializers import OptimizeRouteResponseSerializer
 from fuel_optimizer.apps.route_optimizer.infrastructure.routing.ors_provider import OpenRouteServiceProvider
 from fuel_optimizer.apps.route_optimizer.services.routing_service import RoutingService
 from fuel_optimizer.apps.route_optimizer.services.fuel_optimization_service import FuelOptimizationService
