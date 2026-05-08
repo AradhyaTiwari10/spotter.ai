@@ -366,3 +366,81 @@ Implement routing provider abstraction, OpenRouteService integration, local geom
 feat(routing): implement routing infrastructure and geometry processing
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+# Milestone 5 - Fuel Stop Optimization Engine
+
+## Objective
+Implement a local optimization engine to select fuel stops along a sampled route that minimize total fuel cost while respecting vehicle range (500 miles) and fuel efficiency (10 MPG).
+
+## Optimization Architecture Decisions
+- Optimization is local-only and executed after a single routing call.
+- Separation of responsibilities: repository provides station access; FuelOptimizationService performs corridor filtering, candidate generation, reachability analysis and greedy optimization.
+- All monetary arithmetic uses Decimal and quantization to maintain financial accuracy.
+
+## Corridor Filtering Strategy
+- Use sampled route coordinates and a configurable corridor radius (default 5 miles).
+- For each sample point, issue a bounding-box query to the repository then apply precise haversine distance filter to accept stations within corridor radius.
+- Deduplicate stations by opis_truckstop_id, preserving earliest occurrence along route.
+
+## Candidate Generation Strategy
+- Candidates are annotated with distance_from_start (miles), price (Decimal), and ordering metadata for deterministic behavior.
+- Candidates are sorted by distance then price to preserve route progression.
+
+## Reachability Logic
+- Derived from vehicle assumptions: MPG=10, MAX_RANGE=500 miles -> Tank capacity=50 gallons.
+- Remaining range computed as remaining_gallons * MPG.
+- If no station is reachable and destination is not within range, mark route as unreachable and exit gracefully.
+
+## Fuel Optimization Algorithm
+- Greedy strategy:
+  - From current position, find all stations reachable with current fuel.
+  - Choose the cheapest reachable station and travel to it.
+  - At that station, if a cheaper station exists ahead within a full tank range, buy only enough fuel to reach it; otherwise fill to full.
+  - Repeat until destination is reachable.
+- This approach balances cost savings and stop minimization while remaining deterministic and performant.
+
+## Candidate Ranking Strategy
+- Ranking by distance along route primarily, then by price as a tie-breaker. Reachable candidate selection prioritizes lowest price.
+
+## Decimal Precision Strategy
+- Prices quantized to 0.001 (retail precision). Costs quantized to cents (0.01) for final reporting. Gallons quantized to 0.0001.
+- Decimal context configured with sufficient precision for intermediate ops.
+
+## Optimization Result Modeling
+- Implemented FuelStop, RouteSegmentDecision, OptimizationResult DTOs to carry decisions, purchased gallons, costs, and remaining range.
+
+## Performance Considerations
+- Queries limited by bounding box scans per sampled point; sampled points are few (50 miles spacing) keeping query counts low.25
+- Local processing avoids repeated full-table scans; candiate deduplication uses dict keyed by opis_truckstop_id.
+- Haversine used for accurate distance checks; computations are O(n_candidates) and memory-light.
+
+## Logging and Observability
+- Logs include candidate counts, selected stops, purchase amounts, per-stop reasons, total cost and optimization runtime.
+- Decisions are logged with rationale for auditability.
+
+## Files Added
+- fuel_optimizer/apps/route_optimizer/domain/optimization_models.py
+- fuel_optimizer/apps/route_optimizer/services/fuel_optimization_service.py
+
+## Files Modified
+- fuel_optimizer/apps/route_optimizer/repositories/fuel_station_repository.py (added find_stations_in_bbox)
+- journal.md (appended)
+
+## Validation Results
+- Local validation using NoopRoutingProvider and sample route:
+  - Candidate discovery may be zero for some short/remote  engine correctly reports destination reachable with current fuel and returns zero stops.routes 
+  - Decimal calculations and logging verified in local runs.
+
+## Technical Debt
+- Replace bbox queries with PostGIS spatial queries or a KDTree for faster corridor searches on large datasets.
+- Add unit tests for optimization logic and edge-cases (no stations, unreachable segments).
+- Consider more advanced optimization (dynamic programming or integer programming) for improved cost optimality.
+
+## Next Steps
+- Integrate with routing API endpoint (read-only) and expose OptimizationResult via a service layer.
+- Add tests, metrics, and tracing for production readiness.
+
+## Git Commit
+feat(optimization): implement fuel stop optimization engine
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
