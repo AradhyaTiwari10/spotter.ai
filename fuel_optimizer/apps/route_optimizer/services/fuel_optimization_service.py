@@ -130,7 +130,8 @@ class FuelOptimizationService:
             raise ValueError('No sampled route points provided')
 
         candidates = self._build_candidates(sampled)
-        logger.info('Candidate count: %d', len(candidates))
+        candidate_count = len(candidates)
+        logger.info('Candidate count: %d', candidate_count)
 
         # prepare sorted distances and route length
         route_length_miles = Decimal(str(round(route_summary.metadata.distance_m / 1609.344, 6)))
