@@ -28,3 +28,4 @@ class OptimizationResult:
     selected_stops: list[FuelStop]
     unreachable: bool
     notes: str
+    candidate_count: int = 0

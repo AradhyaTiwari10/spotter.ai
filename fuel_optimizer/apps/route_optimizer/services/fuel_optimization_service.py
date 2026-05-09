@@ -250,5 +250,6 @@ class FuelOptimizationService:
             selected_stops=decisions,
             unreachable=unreachable,
             notes=notes,
+            candidate_count=candidate_count,
         )
         return result

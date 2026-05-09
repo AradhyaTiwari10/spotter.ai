@@ -82,7 +82,7 @@ class OptimizeRouteView(APIView):
         }
 
         metadata = {
-            'candidate_stations': len(result.selected_stops) + 0,  # placeholder; repository could provide candidate count
+            'candidate_stations': getattr(result, 'candidate_count', len(result.selected_stops)),
             'selected_stops': len(result.selected_stops),
             'optimization_runtime_ms': (optimization_end - optimization_start) * 1000.0,
             'routing_runtime_ms': (routing_end - routing_start) * 1000.0,
