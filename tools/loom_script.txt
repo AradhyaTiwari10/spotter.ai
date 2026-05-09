@@ -1,0 +1,9 @@
+Loom Demo Script (3-5 minutes)
+
+1. Intro (15s): Project purpose and endpoints.
+2. Postman demo (90s): Show POST /api/v1/optimize-route/ with Dallas->Phoenix and display result JSON (route, stops, cost, metadata).
+3. Quick code tour (90s): open RoutingService (one routing call), FuelOptimizationService (candidate generation, greedy optimizer), and API view.
+4. Enrichment note (30s): show enrich_fuel_coordinates command and mention resumability and throttle.
+5. Wrap up (15s): next steps and how to run locally.
+
+Tips: Set ORS_API_KEY in .env before demo. Use smaller route for quick response.

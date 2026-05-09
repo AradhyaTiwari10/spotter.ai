@@ -1,0 +1,22 @@
+{
+  "info": {
+    "name": "Fuel Route Optimizer",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Optimize Route",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"start\": \"Dallas, TX\", \"destination\": \"Phoenix, AZ\"}"
+        },
+        "url": { "raw": "http://127.0.0.1:8000/api/v1/optimize-route/", "protocol": "http", "host": ["127","0","0","1"], "port": "8000", "path": ["api","v1","optimize-route","\"] }
+      }
+    }
+  ]
+}
