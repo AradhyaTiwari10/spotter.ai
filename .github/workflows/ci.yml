@@ -13,15 +13,11 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -U pip
-          pip install -r requirements/dev.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements/dev.txt
       - name: Run migrations
         run: |
-          source .venv/bin/activate
           python manage.py migrate --noinput
       - name: Run tests
         run: |
-          source .venv/bin/activate
           pytest -q
