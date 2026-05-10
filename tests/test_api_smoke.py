@@ -1,7 +1,7 @@
 import json
 import pytest
 from django.test import Client
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 
 @pytest.mark.django_db
@@ -32,18 +32,19 @@ def test_optimize_route_smoke():
             candidate_count=0
         )
 
-    with patch('fuel_optimizer.apps.route_optimizer.services.routing_service.RoutingService.get_route', dummy_get_route):
-        with patch('fuel_optimizer.apps.route_optimizer.services.fuel_optimization_service.FuelOptimizationService.optimize', dummy_optimize):
-            client = Client()
-            resp = client.post(
-                '/api/v1/optimize-route/',
-                data=json.dumps({'start': 'A', 'destination': 'B'}),
-                content_type='application/json'
-            )
-            assert resp.status_code == 200
-            data = resp.json()
-            assert data['success'] is True
-            assert 'route' in data
-            assert 'optimization' in data
+    with patch('fuel_optimizer.apps.route_optimizer.api.v1.views.optimization_view.OpenRouteServiceProvider'):
+        with patch('fuel_optimizer.apps.route_optimizer.services.routing_service.RoutingService.get_route', dummy_get_route):
+            with patch('fuel_optimizer.apps.route_optimizer.services.fuel_optimization_service.FuelOptimizationService.optimize', dummy_optimize):
+                client = Client()
+                resp = client.post(
+                    '/api/v1/optimize-route/',
+                    data=json.dumps({'start': 'A', 'destination': 'B'}),
+                    content_type='application/json'
+                )
+                assert resp.status_code == 200
+                data = resp.json()
+                assert data['success'] is True
+                assert 'route' in data
+                assert 'optimization' in data
 
 
