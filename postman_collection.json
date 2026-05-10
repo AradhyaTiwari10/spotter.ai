@@ -1,22 +1,131 @@
 {
   "info": {
-    "name": "Fuel Route Optimizer",
+    "name": "Fuel Route Optimizer API",
+    "description": "Demo collection for optimizing fuel routes across the USA with cost-effective fuel stops",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Optimize Route",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"start\": \"Dallas, TX\", \"destination\": \"Phoenix, AZ\"}"
+      "name": "Demo Requests",
+      "description": "Ready-to-use requests for showcasing the API",
+      "item": [
+        {
+          "name": "Dallas → Phoenix (Long Route)",
+          "description": "Cross-country route with multiple fuel stops expected (~1000 miles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"start\": \"Dallas, TX\", \"destination\": \"Phoenix, AZ\"}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/optimize-route/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "v1", "optimize-route", ""]
+            }
+          }
         },
-        "url": { "raw": "http://127.0.0.1:8000/api/v1/optimize-route/", "protocol": "http", "host": ["127","0","0","1"], "port": "8000", "path": ["api","v1","optimize-route","\"] }
-      }
+        {
+          "name": "New York → Miami (Medium Route)",
+          "description": "East coast route (~1300 miles, will show multiple fuel stops)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"start\": \"New York, NY\", \"destination\": \"Miami, FL\"}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/optimize-route/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "v1", "optimize-route", ""]
+            }
+          }
+        },
+        {
+          "name": "San Francisco → Las Vegas (Short Route)",
+          "description": "Short route (<500 miles, single fuel stop or none)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"start\": \"San Francisco, CA\", \"destination\": \"Las Vegas, NV\"}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/optimize-route/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "v1", "optimize-route", ""]
+            }
+          }
+        },
+        {
+          "name": "Chicago → Denver (Mountain Route)",
+          "description": "Midwest to mountain route (~920 miles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"start\": \"Chicago, IL\", \"destination\": \"Denver, CO\"}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/optimize-route/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "v1", "optimize-route", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health & Status",
+      "description": "Check API health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/health/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "v1", "health", ""]
+            }
+          }
+        }
+      ]
     }
   ]
 }
